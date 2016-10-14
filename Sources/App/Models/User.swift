@@ -1,45 +1,45 @@
 import Vapor
 import Fluent
-import Foundation
 
-final class Post: Model {
+final class User: Model {
+
+    var exists: Bool = false
+    static var entity: String = "user"
+
     var id: Node?
-    var content: String
-    
-    init(content: String) {
-        self.id = UUID().uuidString.makeNode()
-        self.content = content
+    var userid: Int
+    var username: String
+
+    init(userid: Int, username: String) {
+        self.userid = userid
+        self.username = username
     }
 
     init(node: Node, in context: Context) throws {
         id = try node.extract("id")
-        content = try node.extract("content")
+        userid = try node.extract("userid")
+        username = try node.extract("username")
     }
 
     func makeNode(context: Context) throws -> Node {
         return try Node(node: [
-            "id": id,
-            "content": content
-        ])
+            "userid": userid,
+            "username": username
+            ])
     }
+
 }
 
-extension Post {
-    /**
-        This will automatically fetch from database, using example here to load
-        automatically for example. Remove on real models.
-    */
-    public convenience init?(from string: String) throws {
-        self.init(content: string)
-    }
-}
-
-extension Post: Preparation {
+extension User: Preparation {
     static func prepare(_ database: Database) throws {
-        //
+        try? database.create(entity) { users in
+            users.id()
+            users.int("userid")
+            users.string("username")
+        }
     }
 
     static func revert(_ database: Database) throws {
-        //
+        try database.delete(entity)
     }
 }
